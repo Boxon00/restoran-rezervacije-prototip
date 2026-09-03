@@ -6,7 +6,7 @@
 
 usleep(random_int(0, 5000));
 
-$pdo = new PDO('mysql:host=127.0.0.1;dbname=restoran_rezervacije;charset=utf8mb4', 'root', 'rootpass');
+$pdo = new PDO('mysql:host=127.0.0.1;dbname=restoran_rezervacije;charset=utf8mb4', 'root', 'Jasambojan123');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 $tableId = 1;
