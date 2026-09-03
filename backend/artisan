@@ -1,0 +1,17 @@
+#!/usr/bin/env php
+<?php
+
+use Illuminate\Foundation\Application;
+use Symfony\Component\Console\Input\ArgvInput;
+
+define('LARAVEL_START', microtime(true));
+
+// Registruje autoloader nezavisnih paketa (composer install)
+require __DIR__.'/vendor/autoload.php';
+
+// Pokreće aplikaciju
+$app = require_once __DIR__.'/bootstrap/app.php';
+
+$status = $app->handleCommand(new ArgvInput);
+
+exit($status);
