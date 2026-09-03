@@ -64,6 +64,29 @@
 
     <section class="reviews">
       <h2>Ocene i recenzije</h2>
+
+      <div v-if="auth.isLoggedIn" class="review-form">
+        <h3>Ostavi ocenu</h3>
+        <div class="field">
+          <label>Ocena</label>
+          <select v-model.number="reviewForm.stars">
+            <option v-for="n in 5" :key="n" :value="n">{{ '★'.repeat(n) }} ({{ n }})</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Komentar</label>
+          <textarea v-model="reviewForm.comment" rows="3" maxlength="1000" placeholder="Podeli svoj utisak..."></textarea>
+        </div>
+        <button class="btn-primary" :disabled="reviewSubmitting" @click="submitReview">
+          {{ reviewSubmitting ? 'Slanje...' : 'Pošalji ocenu' }}
+        </button>
+        <p v-if="reviewError" class="error">{{ reviewError }}</p>
+        <p v-if="reviewSuccess" class="success">{{ reviewSuccess }}</p>
+      </div>
+      <p v-else class="login-hint">
+        <router-link to="/login">Prijavite se</router-link> da biste ostavili ocenu i komentar.
+      </p>
+
       <div v-for="r in restaurant.ratings" :key="r.id" class="review">
         <strong>{{ r.user?.name }}</strong> — {{ '★'.repeat(r.stars) }}
         <p>{{ r.comment }}</p>
@@ -76,9 +99,15 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '../api'
+import { useAuthStore } from '../store/auth'
 
 const route = useRoute()
+const auth = useAuthStore()
 const restaurant = ref(null)
+const reviewForm = ref({ stars: 5, comment: '' })
+const reviewSubmitting = ref(false)
+const reviewError = ref('')
+const reviewSuccess = ref('')
 const placeholder = '/images/restaurant-placeholder.jpg'
 const form = ref({ date: '', time: '19:00', guests: 2 })
 const availableTables = ref([])
@@ -127,6 +156,26 @@ async function confirmReservation() {
     searched.value = false
   } catch (e) {
     errorMsg.value = e.response?.data?.errors?.table_id || 'Došlo je do greške. Pokušajte ponovo.'
+  }
+}
+
+async function submitReview() {
+  reviewError.value = ''
+  reviewSuccess.value = ''
+  reviewSubmitting.value = true
+  try {
+    await api.post('/ratings', {
+      restaurant_id: restaurant.value.id,
+      stars: reviewForm.value.stars,
+      comment: reviewForm.value.comment || null,
+    })
+    reviewSuccess.value = 'Hvala na oceni!'
+    reviewForm.value = { stars: 5, comment: '' }
+    await loadRestaurant()
+  } catch (e) {
+    reviewError.value = e.response?.data?.message || 'Došlo je do greške. Pokušajte ponovo.'
+  } finally {
+    reviewSubmitting.value = false
   }
 }
 
