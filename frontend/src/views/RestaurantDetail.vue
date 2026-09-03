@@ -25,7 +25,9 @@
           <label>Broj gostiju</label>
           <input type="number" v-model.number="form.guests" min="1" max="20" required />
         </div>
-        <button type="submit" class="btn-primary">Proveri dostupnost</button>
+        <button type="submit" class="btn-primary" :disabled="loading">
+          {{ loading ? 'Proveravam...' : 'Proveri dostupnost' }}
+        </button>
       </form>
 
       <div v-if="availableTables.length" class="tables-grid">
@@ -82,6 +84,7 @@ const form = ref({ date: '', time: '19:00', guests: 2 })
 const availableTables = ref([])
 const selectedTable = ref(null)
 const searched = ref(false)
+const loading = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
 const today = new Date().toISOString().slice(0, 10)
@@ -95,12 +98,18 @@ async function loadRestaurant() {
 async function checkAvailability() {
   errorMsg.value = ''
   successMsg.value = ''
-  searched.value = true
-  const { data } = await api.get(`/restaurants/${route.params.id}/availability`, {
-    params: { date: form.value.date, time: form.value.time, guests: form.value.guests },
-  })
-  availableTables.value = data
+  availableTables.value = []
   selectedTable.value = null
+  loading.value = true
+  try {
+    const { data } = await api.get(`/restaurants/${route.params.id}/availability`, {
+      params: { date: form.value.date, time: form.value.time, guests: form.value.guests },
+    })
+    availableTables.value = data
+  } finally {
+    loading.value = false
+    searched.value = true
+  }
 }
 
 async function confirmReservation() {
@@ -112,7 +121,10 @@ async function confirmReservation() {
       guest_count: form.value.guests,
     })
     successMsg.value = 'Rezervacija je uspešno potvrđena!'
+    errorMsg.value = ''
     availableTables.value = []
+    selectedTable.value = null
+    searched.value = false
   } catch (e) {
     errorMsg.value = e.response?.data?.errors?.table_id || 'Došlo je do greške. Pokušajte ponovo.'
   }
