@@ -305,7 +305,7 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=restoran
 DB_USERNAME=root
-DB_PASSWORD=
+DB_PASSWORD=Jasambojan123
 ```
 
 Ukoliko baza još ne postoji, kreirati je u MySQL-u:
